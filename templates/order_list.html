@@ -13,6 +13,18 @@
     </ul>
 
     <a href="{{ url_for('order.add') }}">新規注文追加</a>
+    <form action="{{ url_for('order.list') }}" method="get" class="month-form">
+    <label for="month">月を選択：</label>
+    <select name="month" id="month" onchange="this.form.submit()">
+        <option value="">--選択--</option>
+        {% for m in range(1, 12+1) %}
+        <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>
+            {{ m }}月
+        </option>
+        {% endfor %}
+    </select>
+</form>
+
     <table>
         <thead>
             <tr>
@@ -33,5 +45,12 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if monthly_sales is not none %}
+<hr>
+<h2>{{ selected_month }}月の集計</h2>
+<p><strong>総売上：</strong> {{ monthly_sales }} 円</p>
+<p><strong>客単価：</strong> {{ monthly_unit_price }} 円</p>
+{% endif %}
+
 </body>
 </html>
