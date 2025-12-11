@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <title>データ一覧</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
 </head>
+
 <body>
     <h1>{{ title }}</h1>
     <ul class="breadcrumb">
@@ -19,6 +21,8 @@
                 <th>&nbsp;</th>
                 <th>名前</th>
                 <th>年齢</th>
+                <th>性別</th>
+
             </tr>
         </thead>
         <tbody>
@@ -27,9 +31,11 @@
                 <td><a href="{{ url_for('user.edit', user_id=user.id) }}">編集</a></td>
                 <td>{{ user.name }}</td>
                 <td>{{ user.age }}</td>
+                <td>{{ user.gender }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </body>
+
 </html>
