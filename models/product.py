@@ -4,6 +4,7 @@ from .db import db
 class Product(Model):
     name = CharField()
     price = DecimalField()
+    payment_method = CharField()
 
     class Meta:
         database = db

@@ -19,6 +19,7 @@
                 <th>&nbsp;</th>
                 <th>製品名</th>
                 <th>価格</th>
+                <th>支払い方法</th>
             </tr>
         </thead>
         <tbody>
@@ -27,6 +28,7 @@
                 <td><a href="{{ url_for('product.edit', product_id=product.id) }}">編集</a></td>
                 <td>{{ product.name }}</td>
                 <td>{{ product.price }}</td>
+                <td>{{ product.payment_method }}</td>
             </tr>
             {% endfor %}
         </tbody>
