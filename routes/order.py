@@ -60,8 +60,36 @@ def add():
     if request.method == 'POST':
         user_id = request.form['user_id']
         product_id = request.form['product_id']
-        order_date = datetime.now()
-        
+        # フォームから年/月/日を受け取って日時を作成（より厳密に検証）
+        y_raw = request.form.get('year', '').strip()
+        m_raw = request.form.get('month', '').strip()
+        d_raw = request.form.get('day', '').strip()
+        order_date = None
+        if y_raw.isdigit() and m_raw.isdigit() and d_raw.isdigit():
+            try:
+                year = int(y_raw)
+                month = int(m_raw)
+                day = int(d_raw)
+                order_date = datetime(year, month, day)
+            except ValueError:
+                order_date = None
+
+        # 無効な入力の場合は現在日時を使用
+        if order_date is None:
+            # 存在しない日付などの入力はエラーとしてフォームに戻す
+            users = User.select()
+            products = Product.select()
+            now = datetime.now()
+            years = range(now.year - 10, now.year + 11)
+            months = range(1, 13)
+            days = range(1, 32)
+            error = '無効な日付です。正しい日付を指定してください。'
+            return render_template('order_add.html', users=users, products=products,
+                                   years=years, months=months, days=days,
+                                   default_year=now.year, default_month=now.month, default_day=now.day,
+                                   selected_year=y_raw, selected_month=m_raw, selected_day=d_raw,
+                                   error=error)
+
         # データの保存
         Order.create(user=user_id, product=product_id, order_date=order_date)
         return redirect(url_for('order.list'))
@@ -69,7 +97,14 @@ def add():
     # GETリクエスト（画面表示時）
     users = User.select()
     products = Product.select()
-    return render_template('order_add.html', users=users, products=products)
+    # 年/月/日のプルダウンを作るための情報を渡す
+    now = datetime.now()
+    years = range(now.year - 10, now.year + 11)  # 過去10年〜未来10年
+    months = range(1, 13)
+    days = range(1, 32)
+    return render_template('order_add.html', users=users, products=products,
+                           years=years, months=months, days=days,
+                           default_year=now.year, default_month=now.month, default_day=now.day)
 
 
 @order_bp.route('/edit/<int:order_id>', methods=['GET', 'POST'])
@@ -83,34 +118,40 @@ def edit(order_id):
     if request.method == 'POST':
         order.user = request.form['user_id']
         order.product = request.form['product_id']
+        # 日付が送られていれば更新（厳密に検証）
+        y_raw = request.form.get('year', '').strip()
+        m_raw = request.form.get('month', '').strip()
+        d_raw = request.form.get('day', '').strip()
+        if y_raw.isdigit() and m_raw.isdigit() and d_raw.isdigit():
+            try:
+                year = int(y_raw)
+                month = int(m_raw)
+                day = int(d_raw)
+                order.order_date = datetime(year, month, day)
+            except ValueError:
+                # 無効な日付ならエラーを返して編集画面に戻す
+                users = User.select()
+                products = Product.select()
+                now = datetime.now()
+                years = range(now.year - 10, now.year + 11)
+                months = range(1, 13)
+                days = range(1, 32)
+                error = '無効な日付です。正しい日付を指定してください。'
+                return render_template('order_edit.html', order=order, users=users, products=products,
+                                       years=years, months=months, days=days,
+                                       selected_year=y_raw, selected_month=m_raw, selected_day=d_raw,
+                                       error=error)
         order.save() # 変更を保存
         return redirect(url_for('order.list'))
 
     # GETリクエスト（編集画面表示）
     users = User.select()
     products = Product.select()
-    return render_template('order_edit.html', order=order, users=users, products=products)
 
-# --- グラフ用のデータ取得API ---
-@order_bp.route('/api/product-sales')
-def product_sales_api():
-    selected_month = request.args.get('month', type=int)
-    
-    # 1. クエリ作成：製品ごとに名前と価格の合計を取得
-    query = (Order
-             .select(Product.name, fn.SUM(Product.price).alias('total'))
-             .join(Product)
-             .group_by(Product.name))
-
-    # 2. 月のフィルタリング（list関数と同じロジック）
-    if selected_month:
-        query = query.where(fn.strftime('%m', Order.order_date) == '{:02d}'.format(selected_month))
-
-    # 3. データの整形
-    labels = []
-    values = []
-    for row in query:
-        labels.append(row.product.name)
-        values.append(row.total)
-
-    return {"labels": labels, "values": values}
+    # 年/月/日のプルダウンを作るための情報を渡す
+    now = datetime.now()
+    years = range(now.year - 10, now.year + 11)
+    months = range(1, 13)
+    days = range(1, 32)
+    return render_template('order_edit.html', order=order, users=users, products=products,
+                           years=years, months=months, days=days)

@@ -28,6 +28,29 @@
                 {% endfor %}
             </select>
         </label><br>
+        <label>日付: 
+            <select name="year" required>
+                {% set sy = selected_year|default(None) %}
+                {% for y in years %}
+                    <option value="{{ y }}" {% if (sy and sy|int == y) or (not sy and order.order_date and order.order_date.year == y) %}selected{% endif %}>{{ y }}年</option>
+                {% endfor %}
+            </select>
+            <select name="month" required>
+                {% set sm = selected_month|default(None) %}
+                {% for m in months %}
+                    <option value="{{ m }}" {% if (sm and sm|int == m) or (not sm and order.order_date and order.order_date.month == m) %}selected{% endif %}>{{ m }}月</option>
+                {% endfor %}
+            </select>
+            <select name="day" required>
+                {% set sd = selected_day|default(None) %}
+                {% for d in days %}
+                    <option value="{{ d }}" {% if (sd and sd|int == d) or (not sd and order.order_date and order.order_date.day == d) %}selected{% endif %}>{{ d }}日</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
         <button type="submit">保存</button>
     </form>
 </body>
