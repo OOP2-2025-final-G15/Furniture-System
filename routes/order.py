@@ -6,7 +6,6 @@ from peewee import fn  # 集計用関数
 # Blueprintの作成
 order_bp = Blueprint('order', __name__, url_prefix='/orders')
 
-
 @order_bp.route('/')
 def list():
     # 1. URLパラメータから 'month' を取得 (例: ?month=10)
@@ -148,6 +147,7 @@ def edit(order_id):
     # GETリクエスト（編集画面表示）
     users = User.select()
     products = Product.select()
+
     # 年/月/日のプルダウンを作るための情報を渡す
     now = datetime.now()
     years = range(now.year - 10, now.year + 11)

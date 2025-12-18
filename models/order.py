@@ -1,3 +1,4 @@
+
 from peewee import Model, ForeignKeyField, DateTimeField, fn  # fnを追加
 from .db import db
 from .user import User
@@ -12,6 +13,19 @@ class Order(Model):
         database = db
 
     @classmethod
+    def get_gender_ratio(cls):
+        query = (
+            cls
+            .select(User.gender, fn.COUNT(cls.id).alias('count'))
+            .join(User)
+            .group_by(User.gender)
+        )
+
+        result = {}
+        for row in query:
+            result[row.user.gender] = row.count
+
+        return result
     def get_total_sales(cls):
         """総売り上げを計算して返す"""
         # OrderとProductを結合し、Product.priceの合計を出す
