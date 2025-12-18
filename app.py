@@ -1,6 +1,10 @@
-from flask import Flask, render_template
-from models import initialize_database, Order
+
+from flask import Flask, render_template,jsonify
+from models import initialize_database
 from routes import blueprints
+from peewee import *
+
+
 app = Flask(__name__)
 
 # データベースの初期化

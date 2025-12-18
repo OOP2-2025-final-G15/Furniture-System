@@ -1,26 +1,72 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from models import Order, User, Product
 from datetime import datetime
+from peewee import fn  # 集計用関数
 
 # Blueprintの作成
 order_bp = Blueprint('order', __name__, url_prefix='/orders')
 
-
 @order_bp.route('/')
 def list():
-    orders = Order.select()
-    return render_template('order_list.html', title='注文一覧', items=orders)
+    # 1. URLパラメータから 'month' を取得 (例: ?month=10)
+    selected_month = request.args.get('month', type=int)
+
+    # 2. ベースとなるクエリを作成
+    # Productの価格(price)を集計に使うため、あらかじめ結合(join)しておく
+    query = Order.select().join(Product)
+
+    # 3. 月が選択されていれば、その月でフィルタリング（絞り込み）
+    if selected_month:
+        # SQLiteの場合、日付から '月' を取り出すには strftime('%m', date_column) を使います
+        # '{:02d}'.format(5) は '05' になります（DBの日付形式に合わせるため）
+        query = query.where(fn.strftime('%m', Order.order_date) == '{:02d}'.format(selected_month))
+
+    # 4. 表示用データの取得（新しい順に並び替え）
+    orders = query.order_by(Order.order_date.desc())
+
+    # --- 集計処理 ---
+    monthly_sales = None
+    monthly_unit_price = None
+
+    # 月が選択されている場合のみ計算を実行
+    if selected_month:
+        # A. 総売上 (Product.price の合計)
+        total_sales = query.select(fn.SUM(Product.price)).scalar() or 0
+        
+        # B. 客数（ユニークユーザー数）
+        customer_count = query.select(fn.COUNT(fn.DISTINCT(Order.user))).scalar() or 0
+
+        # C. 客単価 (売上 ÷ 客数)
+        if customer_count > 0:
+            avg_price = int(total_sales / customer_count)
+        else:
+            avg_price = 0
+
+        # テンプレートに渡す変数にセット
+        monthly_sales = total_sales
+        monthly_unit_price = avg_price
+
+    return render_template('order_list.html', 
+                           title='注文一覧', 
+                           items=orders,
+                           selected_month=selected_month, # プルダウンの選択状態維持用
+                           monthly_sales=monthly_sales,   # HTML表示用
+                           monthly_unit_price=monthly_unit_price) # HTML表示用
 
 
 @order_bp.route('/add', methods=['GET', 'POST'])
 def add():
+    # POSTリクエスト（フォーム送信時）
     if request.method == 'POST':
         user_id = request.form['user_id']
         product_id = request.form['product_id']
         order_date = datetime.now()
+        
+        # データの保存
         Order.create(user=user_id, product=product_id, order_date=order_date)
         return redirect(url_for('order.list'))
     
+    # GETリクエスト（画面表示時）
     users = User.select()
     products = Product.select()
     return render_template('order_add.html', users=users, products=products)
@@ -28,16 +74,43 @@ def add():
 
 @order_bp.route('/edit/<int:order_id>', methods=['GET', 'POST'])
 def edit(order_id):
+    # 編集対象の注文を取得（なければ一覧に戻る）
     order = Order.get_or_none(Order.id == order_id)
     if not order:
         return redirect(url_for('order.list'))
 
+    # POSTリクエスト（更新処理）
     if request.method == 'POST':
         order.user = request.form['user_id']
         order.product = request.form['product_id']
-        order.save()
+        order.save() # 変更を保存
         return redirect(url_for('order.list'))
 
+    # GETリクエスト（編集画面表示）
     users = User.select()
     products = Product.select()
     return render_template('order_edit.html', order=order, users=users, products=products)
+
+# --- グラフ用のデータ取得API ---
+@order_bp.route('/api/product-sales')
+def product_sales_api():
+    selected_month = request.args.get('month', type=int)
+    
+    # 1. クエリ作成：製品ごとに名前と価格の合計を取得
+    query = (Order
+             .select(Product.name, fn.SUM(Product.price).alias('total'))
+             .join(Product)
+             .group_by(Product.name))
+
+    # 2. 月のフィルタリング（list関数と同じロジック）
+    if selected_month:
+        query = query.where(fn.strftime('%m', Order.order_date) == '{:02d}'.format(selected_month))
+
+    # 3. データの整形
+    labels = []
+    values = []
+    for row in query:
+        labels.append(row.product.name)
+        values.append(row.total)
+
+    return {"labels": labels, "values": values}
