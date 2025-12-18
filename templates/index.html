@@ -3,14 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <title>注文管理システム</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
+    <style>
+        /* --- デザイン設定 --- */
+        body, h1, ul, li {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 左側のサイドバー：あなたの担当範囲 */
+        .sidebar {
+            width: 220px;
+            background-color: #ffffff;
+            border-right: 1px solid #e0e0e0; /* 1枚目の画像にあった境界線 */
+            padding: 30px 20px;
+            box-sizing: border-box;
+        }
+
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            line-height: 1.3;
+        }
+
+        .nav-section-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .nav-links li {
+            margin-bottom: 8px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-size: 15px;
+            display: block;
+            padding: 10px 15px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #007bff;
+        }
+
+        /* 右側のメインエリア：ここが他のメンバーのグラフが入る場所 */
+        .main-content {
+            flex: 1;
+            /* 背景を白くして、グラフが見えやすいようにしておきます */
+            background-color: #ffffff; 
+        }
+    </style>
 </head>
 <body>
-    <h1>注文管理システム</h1>
-    <ul>
-      <li><a href="{{ url_for('user.list') }}">ユーザー（顧客）</a></li>
-      <li><a href="{{ url_for('product.list') }}">製品</a></li>
-      <li><a href="{{ url_for('order.list') }}">注文</a></li>
-    </ul>
+
+    <div class="container">
+        <nav class="sidebar">
+            <h1 class="sidebar-title">注文管理<br>システム</h1>
+            
+            <div class="nav-section">
+                <p class="nav-section-title">メインメニュー</p>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('user.list') }}">ユーザー（顧客）</a></li>
+                    <li><a href="{{ url_for('product.list') }}">製品</a></li>
+                    <li><a href="{{ url_for('order.list') }}">注文</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            </main>
+    </div>
+
 </body>
 </html>
