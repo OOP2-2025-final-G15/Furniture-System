@@ -1,7 +1,6 @@
 from flask import Flask, render_template
-from models import initialize_database
+from models import initialize_database, Order
 from routes import blueprints
-
 app = Flask(__name__)
 
 # データベースの初期化
@@ -14,7 +13,11 @@ for blueprint in blueprints:
 # ホームページのルート
 @app.route('/')
 def index():
-    return render_template('index.html')
+    gender_ratio = Order.get_gender_ratio()
+    return render_template(
+        'index.html',
+        gender_ratio=gender_ratio
+    )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
