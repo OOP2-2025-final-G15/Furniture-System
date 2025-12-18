@@ -155,3 +155,27 @@ def edit(order_id):
     days = range(1, 32)
     return render_template('order_edit.html', order=order, users=users, products=products,
                            years=years, months=months, days=days)
+
+# --- グラフ用のデータ取得API ---
+@order_bp.route('/api/product-sales')
+def product_sales_api():
+    selected_month = request.args.get('month', type=int)
+
+    # 1. クエリ作成：製品ごとに名前と価格の合計を取得
+    query = (Order
+             .select(Product.name, fn.SUM(Product.price).alias('total'))
+             .join(Product)
+             .group_by(Product.name))
+
+    # 2. 月のフィルタリング（list関数と同じロジック）
+    if selected_month:
+        query = query.where(fn.strftime('%m', Order.order_date) == '{:02d}'.format(selected_month))
+
+    # 3. データの整形
+    labels = []
+    values = []
+    for row in query:
+        labels.append(row.product.name)
+        values.append(row.total)
+
+    return {"labels": labels, "values": values}
