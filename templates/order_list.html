@@ -38,7 +38,7 @@
             <tr>
                 <td>{{ order.user.name }}</td>
                 <td>{{ order.product.name }}</td>
-                <td>{{ order.order_date }}</td>
+                <td>{% if order.order_date %}{{ order.order_date.strftime('%Y-%m-%d') }}{% endif %}</td>
             </tr>
             {% endfor %}
         </tbody>
