@@ -1,6 +1,6 @@
 
 from flask import Flask, render_template,jsonify
-from models import initialize_database
+from models import initialize_database,Order
 from routes import blueprints
 from peewee import *
 
