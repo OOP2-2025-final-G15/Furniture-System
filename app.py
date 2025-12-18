@@ -1,7 +1,9 @@
+
 from flask import Flask, render_template,jsonify
 from models import initialize_database
 from routes import blueprints
 from peewee import *
+
 
 app = Flask(__name__)
 
@@ -15,7 +17,11 @@ for blueprint in blueprints:
 # ホームページのルート
 @app.route('/')
 def index():
-    return render_template('index.html')
+    gender_ratio = Order.get_gender_ratio()
+    return render_template(
+        'index.html',
+        gender_ratio=gender_ratio
+    )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <title>注文管理システム</title>
@@ -65,6 +66,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <nav class="sidebar">
@@ -131,5 +133,30 @@
         }
         renderChart();
     </script>
+    <h2>注文全体の男女比</h2>
+    <canvas id="genderChart" width="400" height="400"></canvas>
+
+    <script>
+      const genderData = {{ gender_ratio | tojson }};
+
+      const labels = Object.keys(genderData);
+      const data = Object.values(genderData);
+
+      const ctx = document.getElementById('genderChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              '#FF6384', // 女性
+              '#36A2EB'  // 男性
+            ]
+          }]
+        }
+      });
+    </script>
+    
 </body>
 </html>
