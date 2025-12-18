@@ -12,5 +12,56 @@
       <li><a href="{{ url_for('product.list') }}">製品</a></li>
       <li><a href="{{ url_for('order.list') }}">注文</a></li>
     </ul>
+
+    <div style="width: 80%; max-width: 800px; margin: 30px auto;">
+    <canvas id="productSalesChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+async function renderChart() {
+    // 現在選択されている月を取得（HTML側で {{ selected_month }} を埋め込む）
+    const month = "{{ selected_month or '' }}";
+    const response = await fetch(`/orders/api/product-sales?month=${month}`);
+    const data = await response.json();
+
+    const ctx = document.getElementById('productSalesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar', // 横棒グラフも 'bar' を指定
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: '売り上げ(円)',
+                data: data.values,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.4)', // ピンク（Awesome App風）
+                    'rgba(255, 159, 64, 0.4)', // オレンジ（Great App風）
+                    'rgba(255, 205, 86, 0.4)'  // 黄色（Simple App風）
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(255, 205, 86, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y', //これで横棒グラフ
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: '今月の製品別売り上げ' }
+            },
+            scales: {
+                x: { beginAtZero: true }
+            }
+        }
+    });
+}
+renderChart();
+</script>
 </body>
 </html>
